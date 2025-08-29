@@ -30,6 +30,7 @@
                     <option value="GL8">Grade Level 8</option>
                     <option value="GL9" disabled>Grade Level 9 (Locked)</option>
                     <option value="GL10" disabled>Grade Level 10 (Locked)</option>
+                    <option value="GL11" disabled>Grade Level 11 (Locked)</option>
                     <option value="GL12" disabled>Grade Level 12 (Locked)</option>
                     <option value="GL13" disabled>Grade Level 13 (Locked)</option>
                     <option value="GL14" disabled>Grade Level 14 (Locked)</option>
@@ -47,7 +48,7 @@
                 </select>
             </div>
             <button id="start-demo-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md">
-                Try a Free Question
+                Try a Free Quiz
             </button>
         </div>
 
@@ -86,17 +87,42 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Sample question data
-            const questionData = {
-                question: "Which of the following is NOT a fundamental principle of the Public Service Rules?",
-                options: [
-                    "Integrity",
-                    "Efficiency",
-                    "Confidentiality",
-                    "Political Neutrality"
-                ],
-                correctAnswer: "Confidentiality"
-            };
+            // Sample quiz data with multiple questions
+            const questions = [
+                {
+                    question: "Which of the following is NOT a fundamental principle of the Public Service Rules?",
+                    options: [
+                        "Integrity",
+                        "Efficiency",
+                        "Confidentiality",
+                        "Political Neutrality"
+                    ],
+                    correctAnswer: "Confidentiality"
+                },
+                {
+                    question: "According to the Public Service Rules, what is the maximum number of days a public officer can be absent without leave before disciplinary action is taken?",
+                    options: [
+                        "5 days",
+                        "10 days",
+                        "15 days",
+                        "20 days"
+                    ],
+                    correctAnswer: "10 days"
+                },
+                {
+                    question: "The Public Service Rules are reviewed and updated periodically by the...",
+                    options: [
+                        "Federal Executive Council",
+                        "National Assembly",
+                        "Head of the Civil Service of the Federation",
+                        "President of Nigeria"
+                    ],
+                    correctAnswer: "Head of the Civil Service of the Federation"
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+            let isAnswerSubmitted = false;
 
             // DOM Elements
             const introSection = document.getElementById('intro-section');
@@ -110,7 +136,7 @@
             const backToStartBtn = document.getElementById('back-to-start-btn');
             const nextQuestionBtn = document.getElementById('next-question-btn');
             const feedbackDiv = document.getElementById('feedback');
-            let isAnswerSubmitted = false;
+            const questionCardHeader = document.querySelector('#question-card h3');
 
             // Hide all sections except the starting one
             function showSection(section) {
@@ -121,24 +147,31 @@
                 section.classList.remove('hidden');
             }
 
-            // Function to display the question and options
+            // Function to display the current question
             function displayQuestion() {
-                questionText.textContent = questionData.question;
-                optionsContainer.innerHTML = '';
-                questionData.options.forEach(option => {
-                    const button = document.createElement('button');
-                    button.textContent = option;
-                    button.classList.add('w-full', 'text-left', 'py-3', 'px-4', 'bg-gray-200', 'rounded-lg', 'text-gray-800', 'hover:bg-gray-300', 'transition', 'duration-200', 'font-medium', 'focus:outline-none', 'focus:ring-2', 'focus:ring-indigo-500');
-                    button.addEventListener('click', () => {
-                        if (!isAnswerSubmitted) {
-                            selectOption(button);
-                        }
+                if (currentQuestionIndex < questions.length) {
+                    const currentQuestion = questions[currentQuestionIndex];
+                    questionText.textContent = currentQuestion.question;
+                    optionsContainer.innerHTML = '';
+                    currentQuestion.options.forEach(option => {
+                        const button = document.createElement('button');
+                        button.textContent = option;
+                        button.classList.add('w-full', 'text-left', 'py-3', 'px-4', 'bg-gray-200', 'rounded-lg', 'text-gray-800', 'hover:bg-gray-300', 'transition', 'duration-200', 'font-medium', 'focus:outline-none', 'focus:ring-2', 'focus:ring-indigo-500');
+                        button.addEventListener('click', () => {
+                            if (!isAnswerSubmitted) {
+                                selectOption(button);
+                            }
+                        });
+                        optionsContainer.appendChild(button);
                     });
-                    optionsContainer.appendChild(button);
-                });
-                feedbackDiv.textContent = '';
-                submitBtn.disabled = false;
-                nextQuestionBtn.classList.add('hidden');
+                    feedbackDiv.textContent = '';
+                    submitBtn.disabled = false;
+                    nextQuestionBtn.classList.add('hidden');
+                    questionCardHeader.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}:`;
+                } else {
+                    // All questions answered, show the payment section
+                    showSection(paymentSection);
+                }
             }
 
             // Function to handle option selection
@@ -151,10 +184,9 @@
 
             // Event Listeners
             startDemoBtn.addEventListener('click', () => {
+                currentQuestionIndex = 0;
                 isAnswerSubmitted = false;
                 showSection(demoSection);
-                introSection.classList.add('hidden');
-                selectionSection.classList.add('hidden');
                 displayQuestion();
             });
 
@@ -165,9 +197,10 @@
                 if (selectedOption) {
                     isAnswerSubmitted = true;
                     submitBtn.disabled = true;
+                    const currentQuestion = questions[currentQuestionIndex];
 
                     optionsContainer.querySelectorAll('button').forEach(btn => {
-                        if (btn.textContent === questionData.correctAnswer) {
+                        if (btn.textContent === currentQuestion.correctAnswer) {
                             btn.classList.remove('bg-indigo-500');
                             btn.classList.add('bg-green-500', 'text-white');
                         } else if (btn === selectedOption) {
@@ -176,12 +209,12 @@
                         }
                     });
 
-                    if (selectedOption.textContent === questionData.correctAnswer) {
+                    if (selectedOption.textContent === currentQuestion.correctAnswer) {
                         feedbackDiv.textContent = 'Correct!';
                         feedbackDiv.classList.remove('text-red-500');
                         feedbackDiv.classList.add('text-green-500');
                     } else {
-                        feedbackDiv.textContent = `Incorrect. The correct answer is: ${questionData.correctAnswer}`;
+                        feedbackDiv.textContent = `Incorrect. The correct answer is: ${currentQuestion.correctAnswer}`;
                         feedbackDiv.classList.remove('text-green-500');
                         feedbackDiv.classList.add('text-red-500');
                     }
@@ -194,10 +227,9 @@
             });
 
             nextQuestionBtn.addEventListener('click', () => {
-                showSection(paymentSection);
-                introSection.classList.add('hidden');
-                selectionSection.classList.add('hidden');
-                demoSection.classList.add('hidden');
+                currentQuestionIndex++;
+                isAnswerSubmitted = false;
+                displayQuestion();
             });
 
             backToStartBtn.addEventListener('click', () => {
@@ -211,4 +243,3 @@
     </script>
 </body>
 </html>
-
